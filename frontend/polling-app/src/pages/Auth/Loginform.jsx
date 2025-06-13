@@ -1,100 +1,126 @@
-import React, { useContext } from 'react'
-import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import AuthLayout from "../../components/Layout/AuthLayout"
+import React, { useContext, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import AuthLayout from "../../components/Layout/AuthLayout";
 import AuthInput from '../../components/Input/AuthInput';
-import { Link } from 'react-router-dom';
 import { validateEmail } from '../../utils/helper';
 import axiosInstance from '../../utils/axiosInstance';
 import { API_PATHS } from '../../utils/apiPaths';
 import { UserContext } from '../../context/UserContext';
 
-
-
 const Loginform = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
 
-  const [email,setEmail] =useState("");
-  const [password,setPassword] =useState("");
-  const [error,setError] =useState(null);
+  const { updateUser } = useContext(UserContext);
+  const navigate = useNavigate();
 
-  const{updateUser} = useContext(UserContext)
-
-  const Navigate =useNavigate();
-  
-  const handleLogin=async(e)=>{
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if(!validateEmail(email)){
-      setError("Please Enter a valid email address");
+
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address");
       return;
     }
-    if(!password){
-      setError("Please Enter the password");
+
+    if (!password) {
+      setError("Please enter the password");
       return;
     }
-    setError("")
+
+    setError("");
 
     try {
-      const response =await axiosInstance.post(API_PATHS.AUTH.LOGIN,{
+      const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN, {
         email,
         password
       });
-      const {token,user} = response.data
 
-      if(token){
-       localStorage.setItem("token",token);
-       updateUser(user)
-       Navigate("/dashboard")
-        
+      const { token, user } = response.data;
+
+      if (token) {
+        localStorage.setItem("token", token);
+        updateUser(user);
+        navigate("/dashboard");
       }
     } catch (error) {
-      if(error.response && error.response.data.message){
-        setError(error.response.data.message)
-      }else{
-        setError("Something went wrong. Please try again")
+      if (error.response?.data?.message) {
+        setError(error.response.data.message);
+      } else {
+        setError("Something went wrong. Please try again");
+        console.error(error);
       }
-      
     }
-  }
+  };
+
+  const handleGuestLogin = async () => {
+    const guestCredentials = {
+      email: "saikrishna@gmail.com",
+      password: "Sai@1234"
+    };
+
+    try {
+      const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN, guestCredentials);
+      const { token, user } = response.data;
+
+      if (token) {
+        localStorage.setItem("token", token);
+        updateUser(user);
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      console.error("Guest login failed:", error);
+      setError("Unable to login as guest. Please try again.");
+    }
+  };
 
   return (
     <AuthLayout>
-    <div className='lg:w-[70%] h-3/4 md:h-full flex flex-col justify-center'>
+      <div className='lg:w-[70%] h-3/4 md:h-full flex flex-col justify-center'>
         <h3 className='text-xl font-semibold text-black'>Welcome Back</h3>
-        <p className='text-xs text-slate-700 mt-[5px] mb=6'>Please Enter Your Details To Login</p>
-      
-      <form onSubmit={handleLogin}>
-        <AuthInput  value={email}
-        onChange={({target})=>setEmail(target.value)}
-        label="Email Address" 
-        placeholder ="john@example.com"
-        type="text"/>
+        <p className='text-xs text-slate-700 mt-[5px] mb-6'>Please enter your details to login</p>
 
+        <form onSubmit={handleLogin}>
+          <AuthInput
+            value={email}
+            onChange={({ target }) => setEmail(target.value)}
+            label="Email Address"
+            placeholder="john@example.com"
+            type="text"
+          />
 
-        <AuthInput 
-         value={password}
-        onChange={({target})=>setPassword(target.value)}
-        label="Password" 
-        placeholder ="Min 8 Charcaters"
-        type="password"/>
-       
+          <AuthInput
+            value={password}
+            onChange={({ target }) => setPassword(target.value)}
+            label="Password"
+            placeholder="Min 8 Characters"
+            type="password"
+          />
 
-       {error && <p className='text-red-500 text-xs pb-2.5'>{error}</p>}
+          {error && <p className='text-red-500 text-xs pb-2.5'>{error}</p>}
 
-       <button type='submit'className='btn-primary'>
-       LOGIN
-       </button>
+          <button type='submit' className='btn-primary'>
+            LOGIN
+          </button>
 
-       <p className='text-[13px] text-slate-800 mt-3'>
-        Don't have an Account?{" "}
-        <Link className="font-medium text-primary underline" to="/signup">
-        SignUp
-        </Link>
-       </p>
-   
+          <button
+            type="button"
+            onClick={handleGuestLogin}
+            className="btn-secondary mt-2 text-sm text-blue-600 underline"
+          >
+            Login as Guest
+          </button>
+
+          <p className='text-[13px] text-slate-800 mt-3'>
+            Don't have an account?{" "}
+            <Link className="font-medium text-primary underline" to="/signup">
+              SignUp
+            </Link>
+          </p>
         </form>
-       </div>
+      </div>
     </AuthLayout>
-  )
-}
+  );
+};
 
-export default Loginform
+export default Loginform;
