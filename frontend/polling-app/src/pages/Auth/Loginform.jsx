@@ -103,12 +103,9 @@ const Loginform = () => {
             LOGIN
           </button>
 
-          <button
-            type="button"
-            onClick={handleGuestLogin}
-            className="btn-secondary mt-2 text-sm text-blue-600 underline"
-          >
-            Login as Guest
+
+          <button type='button' onClick={handleGuestLogin} className='btn-primary'>
+           Guest
           </button>
 
           <p className='text-[13px] text-slate-800 mt-3'>
